@@ -1,0 +1,11 @@
+config {
+  type: "assertion",
+  name: "validar_pk_unica"
+}
+
+SELECT 
+  PK_REGISTRO,
+  ROW_NUMBER() OVER(PARTITION BY PK_REGISTRO ORDER BY PK_REGISTRO DESC) AS CONTAGEM_REGISTRO
+FROM ${ref ("bronze_receita_operacional", "receita_operacional_bruta")}
+QUALIFY CONTAGEM_REGISTRO > 1
+

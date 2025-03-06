@@ -1,0 +1,19 @@
+config {
+  type: "assertion",
+  name: "validar_empresas_existentes"
+}
+
+WITH RECEITA_EMPRESAS_DISTINTAS AS (
+  SELECT 
+    DISTINCT 
+      FK_CD_EMPRESA 
+  FROM ${ref ("bronze_receita_operacional", "receita_operacional_bruta")}
+)
+
+SELECT 
+  COUNT(1) AS NR_EVIDENCIAS
+ FROM RECEITA_EMPRESAS_DISTINTAS R
+LEFT JOIN ${ref ("silver_tabelas_dominio", "tbl_empresas")} E
+  ON R.FK_CD_EMPRESA = E.PK_CD_EMPRESA
+WHERE 1=1
+AND E.PK_CD_EMPRESA IS NULL
