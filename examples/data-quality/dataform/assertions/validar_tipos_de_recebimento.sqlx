@@ -1,0 +1,24 @@
+config {
+  type: "assertion",
+  name: "validar_tipos_recebimento"
+}
+
+WITH BASE_TIPO_RECEBIMENTO AS (
+SELECT
+  DISTINCT
+    CD_TIPO_RECEBIMENTO,
+    DS_TIPO_RECEBIMENTO
+FROM ${ref ("bronze_receita_operacional", "receita_operacional_bruta")}
+)
+
+SELECT 
+  CD_TPO_RECEBIMENTO,
+  DS_TIPO_RECEBIMENTO 
+FROM BASE_TIPO_RECEBIMENTO A
+WHERE 1=1
+AND NOT EXISTS (
+    SELECT 1 FROM ${ref ("silver_tabelas_dominio", "tbl_tipos_recebimento")}
+    WHERE 1=1 
+    AND A.CD_TIPO_RECEBIMENTO = B.CD_TIPO_RECEBIMENTO
+
+)

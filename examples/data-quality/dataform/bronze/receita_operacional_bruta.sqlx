@@ -1,0 +1,12 @@
+config {
+  type: "table",
+  schema: "bronze_receita_operacional",
+  description: "",
+  tags: ["Informe suas tags aqui"]
+}
+
+SELECT * FROM ${ref("bronze_receita_operacional", "receita_operacional_bruta_nome_empresa_1")}
+
+UNION ALL
+
+SELECT * FROM  ${ref("bronze_receita_operacional", "receita_operacional_bruta_nome_empresa_2")}

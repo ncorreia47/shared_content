@@ -1,0 +1,42 @@
+dag:
+  owner: "owner"
+  description: "Aciona todas as dags do contexto de Receita Operacional Bruta"
+  event_dataset_schedule:
+    - bronze_receita.receita_operacional_bruta_nome_empresa_1
+    - bronze_receita.receita_operacional_bruta_nome_empresa_2
+  timeout: 120
+  retries: 1
+  retry_delay: 1
+  max_active_runs: 1
+  tags:
+    - source:sqlserver
+    - system:erp
+    - zone:bronze_to_silver
+    - trigger
+    - controller
+    - NRT (00:05:00)
+
+  doc_md: |
+    ## DAG: CONTROLLER -> SQL SERVER > Receita Operacional Bruta 
+
+    ### Descrição
+    Esta DAG aguarda todas as tabelas dependentes no contexto de receita_operacional_bruta para inserção dos dados na camada Silver.
+    Além disso, é necessário que as tabelas passem pelas seguintes validações para serem inseridas na camada silver:
+       -> unicidade: verificar se as PK's são únicas
+       -> integridade referencial: verificar se as FK's de empresas são correspondentes as PK's na tabela empresas
+       -> integridade de domínio: verificar se os valores tipos de recebimento estão de acordo com os tipos de recebimento cadastrados nos sistemas de origem
+
+common: 
+  form_repository_id: 'id do seu repositório no dataform'
+  form_dag_compilation: 'id do seu repositório de compilaçoes do dataform'
+
+pipeline:
+  dataform_tables:
+    - table_id: tbl_receita_operacional_bruta
+      dataset_id: silver_receita_operacional_bruta
+      first_full_load: False 
+      assertions:
+        - name: "validar_pk_unica"
+        - name: "validar_empresas_existentes"
+        - name: "validar_tipos_de_recebimento" 
+    

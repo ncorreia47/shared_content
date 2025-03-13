@@ -1,0 +1,72 @@
+ag:
+  owner: "owner"
+  description: "sqlserver > dataflow > dataform > bigquery"
+  timeout: 300
+  retries: 1
+  retry_delay: 1
+  max_active_runs: 1
+  tags:
+    - source:sqlserver
+    - system:erp
+    - zone:bronze
+    - ingest:dataflow
+    - load:incremental
+    - NRT (00:05:00)
+
+  doc_md: |
+    ## DAG: SQL SERVER > Receita Operacional Bruta > Camada Bronze
+
+    ### Descrição
+    Esta DAG executa um job no Dataflow que carrega dados na camada Bronze
+    
+    ### Tarefas
+
+    #### Task 1: Dataform workspace Compilation
+    - **Descrição:** Realiza a compilação do workspace Dataform para executar a transformação das tabelas silver.
+
+    #### Task 2: Dataflow Incremental Load
+    - **Descrição:** Realiza a carga incremental dos dados na camada bronze com Dataflow.
+
+common:
+  form_repository_id: 'id do seu repositório no dataform'
+  form_dag_compilation: 'id do seu repositório de compilaçoes do dataform'
+  secret_db_url_conn: 'sua url de conexão, de preferência criptografada'
+  secret_db_user: 'seu usuário de conexão, de preferência criptografado'
+  secret_db_pwd: 'sua senha de conexão, de preferência criptografada'
+
+tasks:
+  - process: receita_operacional_bruta_nome_da_empresa_1
+    source: receita
+    deletion:
+      deletion_partition_bronze: True
+      deletion_query: "DELETE FROM {dataset_id}.{table_id} WHERE 1=1 AND EMPRESA = 1"
+    ingestion:
+      service: dataflow
+      template_name: SQLServer_to_BigQuery
+      is_truncate: False
+      query_file_full: bronze/sqlserver/receita/receita_operacional_bruta.sql
+      query_file_incremental: bronze/sqlserver/receita/receita_operacional_bruta.sql
+      num_workers: 1
+      max_workers: 3
+      fetch_size: 10000
+      create_event_dataset: True
+    post_process:
+      dataset_name: 'receita_operacional_bruta_nome_da_empresa_1'
+  
+  - process: receita_operacional_bruta_nome_da_empresa_2
+    source: receita
+    deletion:
+      deletion_partition_bronze: True
+      deletion_query: "DELETE FROM {dataset_id}.{table_id} WHERE 1=1 AND EMPRESA = 2"
+    ingestion:
+      service: dataflow
+      template_name: SQLServer_to_BigQuery
+      is_truncate: False
+      query_file_full: bronze/sqlserver/receita/receita_operacional_bruta.sql
+      query_file_incremental: bronze/sqlserver/receita/receita_operacional_bruta.sql
+      num_workers: 1
+      max_workers: 3
+      fetch_size: 5000
+      create_event_dataset: True
+    post_process:
+      dataset_name: 'receita_operacional_bruta_nome_da_empresa_2'

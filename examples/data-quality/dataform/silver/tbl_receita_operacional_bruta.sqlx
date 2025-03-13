@@ -1,0 +1,25 @@
+config {
+  type: "incremental",
+  schema: "silver_receita_operacional",
+  description: "",
+  tags: ["Informe suas tags aqui"]
+}
+
+pre_operations {
+  ${when(incremental(), 
+  `DELETE FROM ${self()} 
+   WHERE EMPRESA IN (1, 2)
+     AND SAFE_CAST(UPDATED_AT AS DATETIME) BETWEEN DATE_TRUNC(DATE_SUB(CURRENT_DATETIME("America/Sao_Paulo"), INTERVAL 1 MONTH), MONTH)
+     AND DATE_ADD(CURRENT_DATETIME("America/Sao_Paulo"), INTERVAL 1 YEAR)` 
+  )}
+}
+
+SELECT 
+  *
+FROM
+  ${ref("bronze_receita_operacional", "receita_operacional_bruta")}
+${when(incremental(),
+`WHERE EMPRESA IN (1, 2)
+     AND SAFE_CAST(UPDATED_AT AS DATETIME) BETWEEN DATE_TRUNC(DATE_SUB(CURRENT_DATETIME("America/Sao_Paulo"), INTERVAL 1 MONTH), MONTH)
+     AND DATE_ADD(CURRENT_DATETIME("America/Sao_Paulo"), INTERVAL 1 YEAR)` 
+)}
